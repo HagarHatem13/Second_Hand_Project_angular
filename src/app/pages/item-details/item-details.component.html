@@ -54,13 +54,31 @@
             💬 Message Seller
           </button>
           <button 
-            class="wishlist-btn" 
-            [class.active]="isInWishlist"
-            (click)="toggleWishlist()"
-          >
-            {{ isInWishlist ? '♥ In Wishlist' : '♡ Add to Wishlist' }}
-          </button>
+          class="wishlist-btn" 
+          [class.active]="isInWishlist"
+          (click)="toggleWishlist()"
+        >
+          {{ isInWishlist ? '♥ In Wishlist' : '♡ Add to Wishlist' }}
+        </button>
         </div>
+        <div 
+        *ngIf="showToast"
+        style="
+          position: fixed;
+          right: 24px;
+          bottom: 24px;
+          background: #07164f;
+          color: white;
+          padding: 14px 20px;
+          border-radius: 8px;
+          font-size: 15px;
+          font-weight: 600;
+          z-index: 99999;
+          box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+        "
+      >
+        {{ toastMessage }}
+      </div>
       </div>
     </section>
 
@@ -69,6 +87,59 @@
       <h3>Item Description</h3>
       <p>{{ item.description }}</p>
     </section>
+    <!-- Rating and Feedback -->
+<section class="feedback-card" *ngIf="item">
+  <h3>Rating and Feedback</h3>
+
+  <div class="average-rating">
+    <strong>Average Rating:</strong>
+    <span *ngIf="averageRating > 0">
+      {{ averageRating | number:'1.1-1' }} / 5
+    </span>
+    <span *ngIf="averageRating === 0">
+      No ratings yet
+    </span>
+  </div>
+
+  <div class="stars">
+    <span
+      *ngFor="let star of [1, 2, 3, 4, 5]"
+      (click)="setRating(star)"
+      [class.active]="star <= selectedRating"
+    >
+      ★
+    </span>
+  </div>
+
+  <textarea
+    [(ngModel)]="feedbackText"
+    placeholder="Write your feedback about this item or seller..."
+    rows="4"
+  ></textarea>
+
+  <button class="submit-feedback-btn" (click)="submitFeedback()">
+    Submit Feedback
+  </button>
+
+    <div class="feedback-list" *ngIf="feedbackList.length > 0">
+      <h4>User Feedback</h4>
+
+      <div class="feedback-item" *ngFor="let feedback of feedbackList">
+        <div class="feedback-header">
+          <strong>{{ feedback.userName }}</strong>
+          <span>{{ feedback.date }}</span>
+        </div>
+
+        <div class="feedback-stars">
+          <span *ngFor="let star of [1, 2, 3, 4, 5]">
+            {{ star <= feedback.rating ? '★' : '☆' }}
+          </span>
+        </div>
+
+        <p>{{ feedback.comment }}</p>
+      </div>
+    </div>
+  </section>
 
     <!-- Related Items -->
     <section class="related-section">
@@ -130,5 +201,8 @@
     </div>
 
   </div>
-
+<div class="toast-notification" *ngIf="showToast">
+  {{ toastMessage }}
 </div>
+</div>
+
