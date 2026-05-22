@@ -327,15 +327,156 @@
   .buttons {
     grid-template-columns: 1fr;
   }
-  .success-message{
+}
+
+/* Success Message */
+.success-message {
   color: #16a34a;
   font-size: 14px;
   margin-top: 10px;
   text-align: center;
 }
 
-.send-btn:disabled{
+.send-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Rating and Feedback */
+.feedback-card {
+  margin-top: 24px;
+  border: 1px solid #cfd9ec;
+  border-radius: 8px;
+  padding: 20px;
+  background: white;
+}
+
+.feedback-card h3 {
+  margin: 0 0 14px;
+  font-size: 18px;
+  color: #07164f;
+}
+
+.average-rating {
+  margin-bottom: 12px;
+  color: #52649a;
+}
+
+.average-rating strong {
+  color: #1d2b55;
+}
+
+.stars {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.stars span {
+  font-size: 32px;
+  color: #cfd9ec;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.stars span.active {
+  color: #f5b400;
+}
+
+.stars span:hover {
+  transform: scale(1.1);
+}
+
+.feedback-card textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #cfd9ec;
+  border-radius: 8px;
+  font-size: 15px;
+  resize: vertical;
+  outline: none;
+  font-family: Arial, sans-serif;
+}
+
+.feedback-card textarea:focus {
+  border-color: #0065ff;
+}
+
+.submit-feedback-btn {
+  margin-top: 12px;
+  background: #0065ff;
+  color: white;
+  border: none;
+  border-radius: 7px;
+  height: 42px;
+  padding: 0 22px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.submit-feedback-btn:hover {
+  background: #0052cc;
+}
+
+.feedback-list {
+  margin-top: 22px;
+}
+
+.feedback-list h4 {
+  margin: 0 0 12px;
+  color: #07164f;
+}
+
+.feedback-item {
+  border-top: 1px solid #d8e0ef;
+  padding: 14px 0;
+}
+
+.feedback-header {
+  display: flex;
+  justify-content: space-between;
+  color: #1d2b55;
+  margin-bottom: 6px;
+}
+
+.feedback-header span {
+  color: #6675a3;
+  font-size: 13px;
+}
+
+.feedback-stars {
+  color: #f5b400;
+  margin-bottom: 6px;
+}
+
+.feedback-item p {
+  margin: 0;
+  color: #52649a;
+  line-height: 1.5;
+}
+.toast-notification {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  background: #07164f;
+  color: white;
+  padding: 14px 20px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  z-index: 2000;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
