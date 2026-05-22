@@ -11,11 +11,12 @@ export interface ListingItem {
   location: string;
   category: string;
   seller: string;
+  sellerId?: string;
+  sellerName?: string;
   sellerContact?: string;
   description: string;
   createdAt?: string;
 }
-
 @Injectable({
   providedIn: 'root'
 })
@@ -115,7 +116,9 @@ export class ListingService {
         condition: item.condition || 'Good',
         location: item.location,
         category: item.category,
-        seller: 'You',
+        seller: item.sellerName || 'You',
+        sellerId: item.sellerId,
+        sellerName: item.sellerName,
         sellerContact: item.sellerContact,
         description: item.description,
         createdAt: item.createdAt
@@ -171,20 +174,25 @@ export class ListingService {
 
   addListing(listing: Partial<ListingItem>): ListingItem {
     const newItem: ListingItem = {
-      id: Date.now(),
-      name: listing.title || listing.name || 'New Item',
-      title: listing.title,
-      price: typeof listing.price === 'number' ? `$${listing.price}` : (listing.price || '$0'),
-      image: listing.photoUrl || listing.image || 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=900',
-      photoUrl: listing.photoUrl,
-      condition: listing.condition || 'Good',
-      location: listing.location || '',
-      category: listing.category || 'Other',
-      seller: 'You',
-      sellerContact: listing.sellerContact,
-      description: listing.description || '',
-      createdAt: new Date().toISOString()
-    };
+  id: Date.now(),
+  name: listing.title || listing.name || 'New Item',
+  title: listing.title,
+  price: typeof listing.price === 'number' ? `$${listing.price}` : (listing.price || '$0'),
+  image: listing.photoUrl || listing.image || 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?w=900',
+  photoUrl: listing.photoUrl,
+  condition: listing.condition || 'Good',
+  location: listing.location || '',
+  category: listing.category || 'Other',
+
+  // Important seller data
+  seller: listing.sellerName || listing.seller || 'You',
+  sellerId: listing.sellerId,
+  sellerName: listing.sellerName,
+
+  sellerContact: listing.sellerContact,
+  description: listing.description || '',
+  createdAt: new Date().toISOString()
+};
 
     // Save to user listings in localStorage
     const saved = localStorage.getItem('userListings');
@@ -197,6 +205,10 @@ export class ListingService {
       condition: newItem.condition,
       location: newItem.location,
       category: newItem.category,
+
+      sellerId: newItem.sellerId,
+      sellerName: newItem.sellerName,
+
       sellerContact: newItem.sellerContact,
       description: newItem.description,
       createdAt: newItem.createdAt
