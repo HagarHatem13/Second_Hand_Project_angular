@@ -42,13 +42,13 @@
     </section>
 
     <!-- Chat -->
-    <section class="chat-card">
+    <section class="chat-card" *ngIf="activeContact">
 
       <div class="chat-header">
         <div class="avatar">&#128100;</div>
 
         <div>
-          <h3>{{ activeContact.name }}</h3>
+          <h3>{{ activeContact?.name || 'Select a conversation' }}</h3>
           <p><span class="online-dot"></span> Online</p>
         </div>
 
@@ -62,7 +62,7 @@
         />
 
         <div>
-          <h4>Laptop - $250</h4>
+          <h4>{{ activeContact?.conversation?.itemName || 'No listing selected' }}</h4>
           <a href="#">View Listing</a>
         </div>
       </div>
@@ -95,6 +95,10 @@
       </div>
 
     </section>
+    <section class="chat-card empty-chat" *ngIf="!activeContact">
+    <h3>No conversation selected</h3>
+    <p>No messages found for this user yet.</p>
+  </section>
 
   </div>
 </main>
