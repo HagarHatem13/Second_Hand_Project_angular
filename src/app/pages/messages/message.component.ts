@@ -1,16 +1,21 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
+
+import { AuthService } from '../../services/auth.service';
+import { MessageService, Conversation, Message } from '../../services/message.service';
 
 interface Contact {
-  id: number;
+  id: string;
   name: string;
   message: string;
   time: string;
   active: boolean;
+  conversation: Conversation;
 }
 
-interface Message {
+interface ChatMessage {
   text: string;
   time: string;
   type: 'sent' | 'received';
@@ -23,100 +28,123 @@ interface Message {
   templateUrl: './message.component.html',
   styleUrls: ['./message.component.css'],
 })
-export class MessageComponent {
+export class MessageComponent implements OnInit, OnDestroy {
   newMessage = '';
   searchText = '';
 
-  contacts: Contact[] = [
-    {
-      id: 1,
-      name: 'Sara Mohamed',
-      message: "Yes, it's still available.",
-      time: '10:24 AM',
-      active: true,
-    },
-    {
-      id: 2,
-      name: 'Omar Ali',
-      message: 'Can you lower the price?',
-      time: 'Yesterday',
-      active: false,
-    },
-    {
-      id: 3,
-      name: 'Mona Hassan',
-      message: 'When can we meet?',
-      time: 'Yesterday',
-      active: false,
-    },
-    {
-      id: 4,
-      name: 'Youssef Adel',
-      message: "Thanks! I'll take it.",
-      time: 'May 4',
-      active: false,
-    },
-  ];
+  contacts: Contact[] = [];
+  messages: ChatMessage[] = [];
+  activeContact: Contact | null = null;
 
-  messages: Message[] = [
-    {
-      text: 'Hi! Is the laptop still available?',
-      time: '10:20 AM',
-      type: 'received',
-    },
-    {
-      text: "Hi Sara! Yes, it's still available.",
-      time: '10:21 AM',
-      type: 'sent',
-    },
-    {
-      text: 'Great! Can you tell me more about its condition?',
-      time: '10:22 AM',
-      type: 'received',
-    },
-    {
-      text: "Sure, it's in very good condition. No scratches and works perfectly.",
-      time: '10:23 AM',
-      type: 'sent',
-    },
-    {
-      text: 'That sounds good. Where can we meet?',
-      time: '10:24 AM',
-      type: 'received',
-    },
-    {
-      text: 'We can meet at City Stars Mall. Does 5 PM work for you?',
-      time: '10:25 AM',
-      type: 'sent',
-    },
-  ];
+  currentUserId = '';
+  currentUserName = '';
 
-  activeContact = this.contacts[0];
+  private conversationsSub?: Subscription;
+  private messagesSub?: Subscription;
+
+  constructor(
+    private authService: AuthService,
+    private messageService: MessageService
+  ) {}
+
+  ngOnInit(): void {
+  const currentUser = this.authService.getCurrentUser();
+
+  if (!currentUser) {
+    alert('Please login first to view messages.');
+    return;
+  }
+
+  this.currentUserId = currentUser.id;
+  this.currentUserName = currentUser.name;
+
+  this.conversationsSub = this.messageService
+    .getUserConversations(this.currentUserId)
+    .subscribe(conversations => {
+
+      this.contacts = conversations.map(conv => {
+        const otherName =
+          conv.buyerId === this.currentUserId
+            ? conv.sellerName
+            : conv.buyerName;
+
+        return {
+          id: conv.id || '',
+          name: otherName || 'Unknown User',
+          message: conv.lastMessage || '',
+          time: this.formatTime(conv.updatedAt),
+          active: false,
+          conversation: conv
+        };
+      });
+
+      if (this.contacts.length > 0) {
+        const selected =
+          this.contacts.find(c => c.id === this.activeContact?.id) ||
+          this.contacts[0];
+
+        this.selectContact(selected);
+      } else {
+        this.activeContact = null;
+        this.messages = [];
+      }
+    });
+}
 
   selectContact(contact: Contact): void {
     this.contacts.forEach(c => c.active = false);
     contact.active = true;
     this.activeContact = contact;
+
+    this.messagesSub?.unsubscribe();
+
+    this.messagesSub = this.messageService
+      .getConversationMessages(contact.id)
+      .subscribe(firebaseMessages => {
+        this.messages = firebaseMessages.map(msg => ({
+          text: msg.messageText,
+          time: this.formatTime(msg.createdAt),
+          type: msg.senderId === this.currentUserId ? 'sent' : 'received'
+        }));
+      });
   }
 
   sendMessage(): void {
-    if (this.newMessage.trim() === '') return;
+    if (!this.newMessage.trim() || !this.activeContact) return;
 
-    const now = new Date();
-    const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-
-    this.messages.push({
-      text: this.newMessage,
-      time: timeStr,
-      type: 'sent',
-    });
-
+    const text = this.newMessage;
     this.newMessage = '';
+
+    this.messageService.replyToConversation(
+      this.activeContact.conversation,
+      this.currentUserId,
+      this.currentUserName,
+      text
+    ).catch(error => {
+      console.error('Reply error:', error);
+      alert('Failed to send message.');
+    });
   }
 
   get filteredContacts(): Contact[] {
-    return this.contacts.filter(c => 
+    return this.contacts.filter(c =>
       c.name.toLowerCase().includes(this.searchText.toLowerCase())
     );
+  }
+
+  formatTime(value: any): string {
+    if (!value) return '';
+
+    const date = value.toDate ? value.toDate() : new Date(value);
+
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit'
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.conversationsSub?.unsubscribe();
+    this.messagesSub?.unsubscribe();
   }
 }
